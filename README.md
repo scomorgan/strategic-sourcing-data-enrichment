@@ -11,6 +11,26 @@
 
 <p>This project aims to enhance data quality, automate workflows, and improve accessibility for multiple projects including Suplari Implementation, P Card, and Travel Analytics. The primary objective is to develop a robust, automated matching framework for AIC files that ensures consistent data across platforms, streamlining workflows and enabling accurate reporting and analysis.</p>
 
+<h2>Key Links and Resources</h2>
+<ul>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/GTSD/Registering+and+Getting+access+to+Datasets+in+EDP">Registering and Getting Access to Datasets in EDP - LinkedIn Corporate Wiki</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/GTSD/Registering+and+Getting+access+to+Datasets+in+EDP#RegisteringandGettingaccesstoDatasetsinEDP-WithEDPCLI">Registering and Getting Access with EDP CLI</a></li>
+    <li><a href="https://lnkd.visualstudio.com/EPE.CICD/_git/edp-metadata?version=GBmaster">EDP Metadata on Visual Studio</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/EPEDA/Power+BI+Connecting+to+EDP#PowerBIConnectingtoEDP-Option2:Thisistheregularmethodthatworksforall.">Connecting Power BI to EDP</a></li>
+    <li><a href="https://oncall.prod.linkedin.com/team/team/pe-data-ipa">EDP On Call Dashboard</a></li>
+    <li><a href="https://linkedin-randd.slack.com/archives/C0445G24JP8">EDP Slack Channel</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/FDP/Finance+Data+Platform+-+FDP">Finance Data Platform - LinkedIn Corporate Wiki</a></li>
+    <li><a href="https://microsoft-onmicrosoft-com.access.mcas.ms/aad_login">Requesting Access to EDP Tables</a></li>
+    <li><a href="https://microsoft.sharepoint.com/teams/EssbaseandSystems/Shared%20Documents/Forms/AllItems.aspx?id=%2Fteams%2FEssbaseandSystems%2FShared%20Documents%2FMasterDataExports&viewid=8dc03049%2Dcb0e%2D4e38%2D8714%2D2075dc50c803D">Master Data Exports</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/GTSD/Registering+and+Getting+access+to+Datasets+in+EDP">Near Real Time Data for Operational Analytics/Reporting</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/FDP/Travel+BCD+-+Finance+Data+Platform">Travel BCD - Finance Data Platform</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/EPEDA/Oracle+to+Hadoop+Filer+based+data+push">Oracle to Hadoop Filer based Data Push</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/IST/EBS+Instances">EBS Instances - Information Services & Technology</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/IST/Revenue+Analytics+-+Ada+Ma">Revenue Analytics - Ada Ma</a></li>
+    <li><a href="https://iwww.corp.linkedin.com/wiki/cf/display/IST/How+to+Request+SGP-ENG+Group+Memberships+in+LIDM">Requesting SGP-ENG Group Memberships</a></li>
+    <li><a href="https://jira.linkedin.com/browse/SYSOPS-146199">Access to Oracle EBS Database - LinkedIn JIRA</a></li>
+</ul>
+
 <h2>Project Structure</h2>
 <ul>
     <li><strong>docs/</strong> - Documentation files including data dictionary, architecture, and analysis notes.</li>
