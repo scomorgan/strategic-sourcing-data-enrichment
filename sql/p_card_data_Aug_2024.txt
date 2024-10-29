@@ -1,0 +1,46 @@
+SELECT
+    (
+        SELECT
+            gjh.name
+        FROM
+            gl_je_headers gjh
+        WHERE
+            gjh.je_header_id = p.je_header_id
+    ) je_name,
+    (
+        SELECT
+            ffv.description
+        FROM
+            fnd_flex_value_sets ffvs,
+            fnd_flex_values_vl  ffv
+        WHERE
+                ffvs.flex_value_set_name = 'XXLIN_ACCOUNT'
+            AND ffvs.flex_value_set_id = ffv.flex_value_set_id
+            AND ffv.flex_value = to_char(p.exp_account)
+    ) gl_account_name,
+    (
+        SELECT
+            ffv.description
+        FROM
+            fnd_flex_value_sets ffvs,
+            fnd_flex_values_vl  ffv
+        WHERE
+                ffvs.flex_value_set_name = 'XXLIN_DEPARTMENT'
+            AND ffvs.flex_value_set_id = ffv.flex_value_set_id
+            AND ffv.flex_value = to_char(p.cost_center)
+    ) gl_dept_name,
+    p.*,
+    p.amount*(decode(p.CURRENCY, 'USD',1,(select gdr.CONVERSION_RATE
+from gl_daily_rates gdr 
+where gdr.from_currency = p.CURRENCY 
+and to_currency = 'USD' 
+and gdr.CONVERSION_DATE = p.GL_DATE 
+and gdr.CONVERSION_TYPE='Corporate'))) amount_usd
+FROM
+    xxlin_gl_wd_pcard_recon_stg_bk p
+WHERE
+    gl_period IN ('Aug-24')
+
+
+fpanda
+LIN AP Global Inquiry	

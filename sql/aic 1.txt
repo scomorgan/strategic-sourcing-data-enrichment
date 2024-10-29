@@ -1,0 +1,477 @@
+SELECT
+    aia.source                                   system,
+    NULL                                         system_type,
+    to_char(aia.creation_date ,'MMDDYYYY')       extract_date,
+    (
+        SELECT
+            to_char(aca.check_date ,'MMDDYYYY') 
+        FROM
+            ap_checks_all           aca,
+            ap_invoice_payments_all aip
+        WHERE
+                aca.check_id = aip.check_id
+            AND aip.invoice_id = aia.invoice_id
+            AND ROWNUM = 1
+    )                                            paid_date,
+    (
+        SELECT
+            to_char(apsa.due_date ,'MMDDYYYY') 
+        FROM
+            ap_payment_schedules_all apsa
+        WHERE
+                apsa.invoice_id = aia.invoice_id
+            AND ROWNUM = 1
+    )                                            due_date,
+    to_char(aida.accounting_date ,'MMDDYYYY')    posting_date,
+    to_char(aia.invoice_received_date ,'MMDDYYYY')                     receipt_date,
+    to_char(aia.creation_date ,'MMDDYYYY')                             entry_date,
+    to_char(aia.invoice_date ,'MMDDYYYY') invoice_date,
+    aia.invoice_num                              invoice_number,
+    aila.line_number                             invoice_line_number,
+    aia.description                              invoice_header_description,
+    aila.description                             invoice_line_description,
+    aila.amount                                  invoice_line_amount,
+    aia.invoice_currency_code                    invoice_line_currency,
+    aia.invoice_type_lookup_code                 invoice_type,
+    aia.exchange_rate                            exchange_rate,
+    NULL                                         posting_key,
+    aia.voucher_num                              voucher_number,
+    NULL                                         clearing_document,
+    (
+        SELECT
+            aca.check_number
+        FROM
+            ap_checks_all           aca,
+            ap_invoice_payments_all aip
+        WHERE
+                aca.check_id = aip.check_id
+            AND aip.invoice_id = aia.invoice_id
+            AND ROWNUM = 1
+    ) document_number,
+    NULL                                         document_line_number,
+    aia.INVOICE_TYPE_LOOKUP_CODE                     document_type,
+    NULL                                         transaction_type,
+    nvl(sup.segment1,'-222')                     supplier_number,
+    sup.vendor_name                              supplier_name,
+    nvl(sup.vendor_type_lookup_code,'-222')      supplier_type,
+    NULL                                         preferred_supplier,
+    assa.address_line1                           supplier_address_1,
+    assa.address_line2                           supplier_address_2,
+    assa.address_line3                           supplier_address_3,
+    assa.address_line4                           supplier_address_4,
+    assa.zip                                     supplier_zip,
+    assa.city                                    supplier_city,
+    assa.state                                   supplier_state,
+    assa.country                                 supplier_country,
+    (
+        SELECT
+            flv.attribute4
+        FROM
+            fnd_lookup_values flv
+        WHERE
+                aia.org_id = flv.attribute2
+            AND flv.lookup_type = 'XXLIN_MO_VAT_LOOKUP'
+            AND flv.enabled_flag = 'Y' AND ROWNUM = 1
+            AND trunc(sysdate) BETWEEN trunc(nvl(start_date_active, sysdate)) AND trunc(nvl(end_date_active, sysdate))
+    )                                            supplier_region,
+    assa.vat_registration_num                    tax_number,
+    (
+        SELECT
+            s1.vendor_name
+        FROM
+            ap_suppliers s1
+        WHERE
+                s1.vendor_id = sup.parent_vendor_id AND ROWNUM = 1
+    )                                            ultimate_parent,
+    NULL                                         supplier_compliance,
+    (
+        SELECT
+            papf.full_name
+        FROM
+            per_people_f papf
+        WHERE
+                papf.person_id = pha.agent_id
+            AND trunc(sysdate) BETWEEN papf.effective_start_date AND papf.effective_end_date AND ROWNUM = 1
+    )                                            buyer,
+    (
+        SELECT
+            papf.full_name    --**********
+        FROM
+            per_people_f papf
+        WHERE
+                papf.person_id = pda.deliver_to_person_id --prha.PREPARER_ID
+            AND trunc(sysdate) BETWEEN papf.effective_start_date AND papf.effective_end_date AND ROWNUM = 1
+    )                                            requisitioner --Requisitioner
+    ,
+    (
+        SELECT
+            papf.full_name
+        FROM
+            per_people_f papf
+        WHERE
+                papf.person_id = (
+                    SELECT
+                        employee_id--pah.action_code
+                    FROM
+                        po_action_history pah
+                    WHERE
+                            pah.object_type_code = 'PO'
+                        AND pah.action_code = 'APPROVE'
+                        AND pah.object_id = pha.po_header_id
+                        AND pah.sequence_num = (
+                            SELECT
+                                MAX(pah1.sequence_num)
+                            FROM
+                                po_action_history pah1
+                            WHERE
+                                    pah1.object_type_code = 'PO'
+                                AND pah1.action_code = 'APPROVE'
+                                AND pah1.object_id = pah.object_id
+                        )
+                )
+            AND trunc(sysdate) BETWEEN papf.effective_start_date AND papf.effective_end_date
+            AND ROWNUM = 1
+    )                                            approver --Check from po_action history
+    ,
+    pha.segment1                                 po_number,
+    to_char(pha.creation_date,'MMDDYYYY')        po_date,
+    pha.comments                                 po_description,
+    pha.currency_code                            po_currency,
+    pla.line_num                                 po_line_number,
+    pla.item_description                         po_line_description,
+    pla.unit_meas_lookup_code                    po_uom --Unit Of Measure on the purchase order
+    ,
+    pla.unit_price                               po_unit_cost   --Cost of a unit/item on purchase order
+    ,
+    pla.quantity                                 po_quantity    --Number of unit / items on the purchase order line
+/*,(select msi.segment1 
+    from mtl_system_items msi
+    where msi.INVENTORY_ITEM_ID=aila.INVENTORY_ITEM_ID
+    and msi.ORGANIZATION_ID=aila.ORG_ID
+    and rownum=1) Item_Number*/ --Number of the item on the invoice line
+    ,
+    NULL                                         item_number,
+    NULL                                         item_description
+--,aila.ITEM_DESCRIPTION Item_Description   --Description of the item on the invoice line
+    ,
+    null item_cost --( aila.quantity_invoiced * aila.unit_price ) item_cost --Cost of the individual unit / item (QUANTITY_INVOICED * unit_price)
+    ,
+    null quantity-- aila.quantity_invoiced                       quantity   --Number of unit / items on the invoice line  
+    ,
+    aila.unit_meas_lookup_code                   uom    --Unit Of measure on the invoice  
+    ,
+    NULL                                         manufacturers_item_description --Description of the item provided by the manufacturer
+    ,
+    NULL                                         manufacturers_item_number--    Number of the item provided by the manufacturer
+    ,
+    NULL                                         preferred_manufacturer--Indicator to show it is a preferred manufacturer or the name of the preferred manufacturer 
+    ,
+    NULL                                         preferred_manufacturer_item_number --Number of the item from the Preferred Manufacturer
+    ,
+    NULL                                         historical_item_cost-- Cost of an item historically, may be average cost this year, cost last quarter, etc
+    ,
+    NULL                                         historical_volume  --Volume of an item historically, may be average volumn this year, volume last month, etc
+    ,
+    NULL                                         material_group --Identification reference for Material Group
+    ,
+    NULL                                         material_group_description --Name of the Material Group
+    ,
+    NULL                                         purchasing_group   --Identification reference fo Purchasing Group
+    ,
+    NULL                                         purchasing_group_description   --Name of the Purchasing Group
+    ,
+    NULL                                         purchasing_org_code    --Identification reference for Purchasing Organisation
+    ,
+    NULL                                         purchasing_org_description --Name of the Purchasing Organisation
+    ,
+    (
+        SELECT
+            aca.payment_method_code
+        FROM
+            ap_checks_all           aca,
+            ap_invoice_payments_all aip
+        WHERE
+                aca.check_id = aip.check_id
+            AND aip.invoice_id = aia.invoice_id
+           AND ROWNUM = 1
+    )                                            payment_method --Method of payment used to pay the invoice ---Check in inv headers 
+    ,
+    (
+        SELECT
+            name
+        FROM
+            ap_terms att
+        WHERE
+                att.term_id = aia.terms_id
+            AND ROWNUM = 1
+    )                                            payment_terms_code --Code for the payment terms on the invoice line
+    ,
+    (
+        SELECT
+            description
+        FROM
+            ap_terms att
+        WHERE
+                att.term_id = aia.terms_id
+            AND ROWNUM = 1
+    )                                            payment_terms_description  --Description of the payment terms on the invoice line
+    ,
+    NULL                                         discounted_terms,
+    (
+        SELECT
+            name
+        FROM
+            ap_terms att
+        WHERE
+                att.term_id = assa.terms_id
+            AND ROWNUM = 1
+    )                                            supplier_payment_terms_code    --Payment terms for the supplier from vendor master
+    ,
+    (
+        SELECT
+            description
+        FROM
+            ap_terms att
+        WHERE
+                att.term_id = assa.terms_id
+            AND ROWNUM = 1
+    )                                            supplier_payment_terms_description --Payment terms description for the supplier from vendor master
+    ,
+    gcc.segment1                                 company_number,
+    (
+        SELECT
+            ffvv.description
+        FROM
+            fnd_flex_values_vl  ffvv,
+            fnd_flex_value_sets ffvs
+        WHERE
+                ffvv.flex_value_set_id = ffvs.flex_value_set_id
+            AND ffvs.flex_value_set_name = 'XXLIN_COMPANY'
+            AND ffvv.flex_value = gcc.segment1
+            AND ffvv.enabled_flag = 'Y'
+            AND trunc(sysdate) BETWEEN trunc(nvl(ffvv.start_date_active, sysdate)) AND trunc(nvl(ffvv.end_date_active, sysdate))
+            AND ROWNUM = 1
+    )                                            company_name,
+    NULL                                         company_city,
+    NULL                                         company_state,
+    NULL                                         company_country,
+    NULL                                         company_region,
+    NULL                                         business_unit,
+    NULL                                         business_unit_description,
+    gcc.segment1
+    || '.'
+    || gcc.segment2                              cost_center,
+    (
+        SELECT
+            ffvv.description
+        FROM
+            fnd_flex_values_vl  ffvv,
+            fnd_flex_value_sets ffvs
+        WHERE
+                ffvv.flex_value_set_id = ffvs.flex_value_set_id
+            AND ffvs.flex_value_set_name = 'XXLIN_COMPANY_DEPARTMENT'
+            AND ffvv.flex_value = gcc.segment1
+                                  || '.'
+                                  || gcc.segment2
+            AND ffvv.enabled_flag = 'Y'
+            AND trunc(sysdate) BETWEEN trunc(nvl(ffvv.start_date_active, sysdate)) AND trunc(nvl(ffvv.end_date_active, sysdate))
+            AND ROWNUM = 1
+    )                                            cost_center_description,
+    NULL                                         profit_center,
+    NULL                                         profit_center_description,
+    NULL                                         entity,
+    NULL                                         entity_description,
+    NULL                                         division,
+    NULL                                         division_description,
+    gcc.segment2                                 department,
+    (
+        SELECT
+            ffvv.description
+        FROM
+            fnd_flex_values_vl  ffvv,
+            fnd_flex_value_sets ffvs
+        WHERE
+                ffvv.flex_value_set_id = ffvs.flex_value_set_id
+            AND ffvs.flex_value_set_name = 'XXLIN_DEPARTMENT'
+            AND ffvv.flex_value = gcc.segment2
+            AND ffvv.enabled_flag = 'Y'
+            AND trunc(sysdate) BETWEEN trunc(nvl(ffvv.start_date_active, sysdate)) AND trunc(nvl(ffvv.end_date_active, sysdate))
+            AND ROWNUM = 1
+    )                                            department_description,
+    NULL                                         plant,
+    NULL                                         plant_description,
+    gcc.segment3                                 account,
+    (
+        SELECT
+            ffvv.description
+        FROM
+            fnd_flex_values_vl  ffvv,
+            fnd_flex_value_sets ffvs
+        WHERE
+                ffvv.flex_value_set_id = ffvs.flex_value_set_id
+            AND ffvs.flex_value_set_name = 'XXLIN_ACCOUNT'
+            AND ffvv.flex_value = gcc.segment3
+            AND ffvv.enabled_flag = 'Y'
+            AND trunc(sysdate) BETWEEN trunc(nvl(ffvv.start_date_active, sysdate)) AND trunc(nvl(ffvv.end_date_active, sysdate))
+            AND ROWNUM = 1
+    )                                            account_description,
+    aida.amount                                  distribution_amount,
+    NULL                                         contract_number,
+    NULL                                         contract_start_date,
+    NULL                                         contract_renewal_date,
+    NULL                                         contract_value,
+    NULL                                         contract_currency,
+    NULL                                         contract_unit_cost,
+    NULL                                         contract_name,
+    NULL                                         contract_uom,
+    NULL                                         contract_volume,
+    NULL                                         government_classification,
+    (
+        SELECT
+            lookup_code
+        FROM
+            pos_bus_class_attr
+        WHERE
+                party_id = sup.party_id
+            AND sysdate BETWEEN start_date_active AND end_date_active
+            AND vendor_id = sup.vendor_id
+            AND ROWNUM = 1
+    )                                            diversity_classification,
+    NULL                                         mcc,
+    NULL                                         mcc_description,
+    NULL                                         expense_type,
+    decode(gcc.segment5,'000','No','Yes')        intercompany,
+    decode(sup.employee_id,null,null,'Y')        employee,
+    NULL                                         addressable,
+    NULL                                         asset,
+    NULL                                         asset_description,
+    NULL                                         commodity_code,
+    NULL                                         commodity_code_description,
+    NULL                                         wbs_description,
+    NULL                                         wbs_element,
+    NULL                                         catalogue,
+    NULL                                         customer_category_1,
+    NULL                                         customer_category_2,
+    NULL                                         customer_category_3,
+    NULL                                         customer_category_4,
+    NULL                                         customer_category_5,
+    NULL                                         customer_category_6,
+    NULL                                         customer_category_7,
+    NULL                                         customer_category_code,
+    sup.standard_industry_class                  sic_code,
+    NULL                                         sic_code_description,
+    NULL                                         industry_code,
+    NULL                                         industry_code_description,
+    NULL                                         risk_indicator,
+    NULL                                         risk_factor_1,
+    NULL                                         risk_factor_2,
+    NULL                                         risk_factor_3,
+    NULL                                         risk_factor_4,
+    NULL                                         risk_factor_5,
+    NULL                                         risk_factor_6,
+    NULL                                         risk_factor_7,
+    NULL                                         risk_factor_8,
+    NULL                                         risk_factor_9,
+    NULL                                         risk_factor_10,
+    substr(dh.top, 1, 4)                      org_hierarchy_1_code,
+    substr(dh.top,instr(dh.level1, '|', 1) + 1)         org_hierarchy_1_description,    
+    substr(dh.level1, 1, 4)                      org_hierarchy_2_code,
+    substr(dh.level1,instr(dh.level1, '|', 1) + 1)         org_hierarchy_2_description,
+    substr(dh.level2, 1, 4)                      org_hierarchy_3_code,
+    substr(dh.level2,instr(dh.level2, '|', 1) + 1)         org_hierarchy_3_description,
+    substr(dh.level3, 1, 4)                      org_hierarchy_4_code,
+    substr(dh.level3,instr(dh.level3, '|', 1) + 1)         org_hierarchy_4_description,
+    substr(dh.level4, 1, 4)                      org_hierarchy_5_code,
+    substr(dh.level4,instr(dh.level4, '|', 1) + 1)         org_hierarchy_5_description,
+    substr(dh.level5, 1, 4)                      org_hierarchy_6_code,
+    substr(dh.level5,instr(dh.level5, '|', 1) + 1)         org_hierarchy_6_description,
+    substr(dh.level6, 1, 4)                      org_hierarchy_7_code,
+    substr(dh.level6,instr(dh.level6, '|', 1) + 1)         org_hierarchy_7_description,
+    substr(dh.level7, 1, 4)                      org_hierarchy_8_code,
+    substr(dh.level7,instr(dh.level7, '|', 1) + 1)         org_hierarchy_8_description,
+    substr(dh.level8, 1, 4)                      org_hierarchy_9_code,
+    substr(dh.level8,instr(dh.level8, '|', 1) + 1)         org_hierarchy_9_description,
+    NULL                                         org_hierarchy_10_code,
+    NULL                                         org_hierarchy_10_description,
+    substr(ah.top, 1, 6)                         account_hierarchy_1_code,
+    substr(ah.top,instr(ah.top, '|', 1) + 1)     account_hierarchy_1_description,
+    substr(ah.level1, 1, 6)                      account_hierarchy_2_code,
+    substr(ah.level1, instr(ah.level1, '|', 1) + 1)         account_hierarchy_2_description,
+    substr(ah.level2, 1, 6)                      account_hierarchy_3_code,
+    substr(ah.level2,instr(ah.level2, '|', 1) + 1)         account_hierarchy_3_description,
+    substr(ah.level3, 1, 6)                      account_hierarchy_4_code,
+    substr(ah.level3,instr(ah.level3, '|', 1) + 1)         account_hierarchy_4_description,
+    substr(ah.level4, 1, 6)                      account_hierarchy_5_code,
+    substr(ah.level4,instr(ah.level4, '|', 1) + 1)         account_hierarchy_5_description,
+    substr(ah.level5, 1, 6)                      account_hierarchy_6_code,
+    substr(ah.level5,instr(ah.level5, '|', 1) + 1)         account_hierarchy_6_description,
+    substr(ah.level6, 1, 6)                      account_hierarchy_7_code,
+    substr(ah.level6,instr(ah.level6, '|', 1) + 1)         account_hierarchy_7_description,
+    substr(ah.level7, 1, 6)                      account_hierarchy_8_code,
+    substr(ah.level7,instr(ah.level7, '|', 1) + 1)         account_hierarchy_8_description,
+    substr(ah.level8, 1, 6)                      account_hierarchy_9_code,
+    substr(ah.level8,instr(ah.level8, '|', 1) + 1)         account_hierarchy_9_description,
+    NULL                                         account_hierarchy_10_code,
+    NULL                                         account_hierarchy_10_description
+    ,aia.org_id,hou.name,aida.DISTRIBUTION_LINE_NUMBER
+   -- ,pha.ATTRIBUTE12 po_header_Conga_record
+    ,pla.ATTRIBUTE5 po_line_conga_record,
+    (case when aida.org_id not in (2024,2044) then  nvl(aida.BASE_AMOUNT ,aida.amount)
+         else
+           (nvl(aida.base_amount,aida.amount) * (SELECT conversion_rate
+    FROM gl_daily_rates
+    WHERE conversion_date = aida.accounting_date
+    AND from_currency     = 'CNY'
+    AND to_currency       = 'USD'
+    AND conversion_type   = 'Corporate'
+    AND ROWNUM            = 1))
+         end) DISTRIBUTION_AMOUNT_USD,
+    (select po_cat.SEGMENT10 from mtl_categories_b_kfv po_cat where po_cat.category_id = pla.category_id and po_cat.structure_id = 201)  Category_1,    
+    (select po_cat.SEGMENT11 from mtl_categories_b_kfv po_cat where po_cat.category_id = pla.category_id and po_cat.structure_id = 201)  Category_2,
+    (select po_cat.SEGMENT12 from mtl_categories_b_kfv po_cat where po_cat.category_id = pla.category_id and po_cat.structure_id = 201)  Category_3,
+    aida.LINE_TYPE_LOOKUP_CODE 
+--,aida.invoice_id,aida.amount ,aida.base_amount 
+FROM
+    po_headers_all               pha,
+    po_distributions_all         pda,
+    gl_code_combinations         gcc,
+    po_lines_all                 pla,
+    po_line_locations_all        plla,
+    ap_suppliers                 sup,
+    ap_supplier_sites_all        assa,
+    (select * 
+       from ap_invoice_distributions_all aida_2 
+      where (aida_2.amount <> 0 OR aida_2.base_amount <> 0 )
+        and aida_2.accounting_date BETWEEN TO_DATE('01-SEP-2024 00:00:00', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('12-SEP-2024 23:59:59', 'DD-MON-YYYY HH24:MI:SS') ) aida,
+    ap_invoices_all aia,
+    ap_invoice_lines_all aila,
+    (select * from Xxlin_Report_Hierarchy_V 
+      where version = 30
+        and lookup_desc like 'XXLIN_DEPARTMENT%' 
+        and top like '%Department Group Structure'
+        and period = 202409)  dh,
+    (select * 
+       from Xxlin_Report_Hierarchy_V where version = 30
+        and lookup_desc like 'XXLIN_ACCOUNT%' 
+        and top like '%All Accounts'
+        and period = 202409)      ah,
+    hr_operating_units hou
+WHERE
+        1 = 1 
+    AND aia.org_id = hou.organization_id
+    AND aia.vendor_id = sup.vendor_id
+    AND aia.vendor_site_id = assa.vendor_site_id
+    AND aia.invoice_id = aila.invoice_id
+    AND nvl(aila.discarded_flag, 'N') = 'N'
+    AND nvl(aila.cancelled_flag, 'N') = 'N'
+    AND aila.line_number = aida.invoice_line_number
+    AND aila.invoice_id = aida.invoice_id
+    AND aia.invoice_id = aida.invoice_id
+    AND nvl(aida.cancellation_flag, 'N') = 'N'
+    AND gcc.code_combination_id = aida.dist_code_combination_id
+    AND gcc.segment2 = dh.lookup_code (+)
+    AND gcc.segment3 = ah.lookup_code (+)
+    AND aida.po_distribution_id = pda.po_distribution_id (+)
+    AND pda.line_location_id = plla.line_location_id (+)
+    AND plla.po_line_id = pla.po_line_id (+)
+    AND pla.po_header_id = pha.po_header_id (+)

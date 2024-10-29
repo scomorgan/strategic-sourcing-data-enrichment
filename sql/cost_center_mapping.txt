@@ -1,0 +1,31 @@
+select ffv.flex_value comp_dept, 
+       (select ppf.full_name 
+          from per_people_f ppf 
+         where ppf.person_id=ffv.attribute1
+           and trunc(sysdate) between ppf.effective_start_date and ppf.effective_end_date) Finance_Delegate,
+       (select ppf.employee_number 
+          from per_people_f ppf 
+         where ppf.person_id=ffv.attribute1
+           and trunc(sysdate) between ppf.effective_start_date and ppf.effective_end_date) Finance_Delegate_emp_id,    
+       (select ppf.full_name 
+          from per_people_f ppf 
+         where ppf.person_id=ffv.attribute2
+           and trunc(sysdate) between ppf.effective_start_date and ppf.effective_end_date) Executive_Owner,
+       (select ppf.employee_number 
+          from per_people_f ppf 
+         where ppf.person_id=ffv.attribute2
+           and trunc(sysdate) between ppf.effective_start_date and ppf.effective_end_date) Executive_Owner_emp_id,    
+       (select ppf.full_name 
+          from per_people_f ppf 
+         where ppf.person_id=ffv.attribute3
+           and trunc(sysdate) between ppf.effective_start_date and ppf.effective_end_date) Budget_Owner,
+       (select ppf.employee_number 
+          from per_people_f ppf 
+         where ppf.person_id=ffv.attribute3
+           and trunc(sysdate) between ppf.effective_start_date and ppf.effective_end_date) Budget_Owner_emp_id           
+from  fnd_flex_values ffv,fnd_flex_value_sets ffvs 
+where ffvs.flex_value_set_name='XXLIN_COMPANY_DEPARTMENT'
+and ffvs.flex_value_set_id= ffv.flex_value_set_id 
+and trunc(sysdate) between nvl(ffv.start_date_active,sysdate-1) and nvl(ffv.end_date_active,sysdate+1)
+and ffv.ENABLED_FLAG = 'Y'
+order by 1

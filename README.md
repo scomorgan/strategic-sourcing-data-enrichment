@@ -21,6 +21,124 @@
     <li><strong>data_samples/</strong> - Sample data files (sanitized) for testing ETL processes, including raw and processed data.</li>
 </ul>
 
+<h2>Data Tables and Columns</h2>
+<p>The following tables and columns are key to the Matching - AIC File project:</p>
+
+<table border="1" cellpadding="10" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Table Name</th>
+            <th>Key Columns</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>GL_DAILY_RATES</td>
+            <td>Conversion Date, From Currency, To Currency, Conversion Rate</td>
+        </tr>
+        <tr>
+            <td>HR_OPERATING_UNITS</td>
+            <td>Organization ID, Name, Location</td>
+        </tr>
+        <tr>
+            <td>HZ_CUST_ACCOUNTS</td>
+            <td>Account Number, Customer ID, Customer Name</td>
+        </tr>
+        <tr>
+            <td>HZ_CUST_ACCT_SITES_ALL</td>
+            <td>Customer Account Site ID, Location ID, Site Use Code</td>
+        </tr>
+        <tr>
+            <td>HZ_CUST_SITE_USES_ALL</td>
+            <td>Site Use ID, Site Use Code, Primary Flag</td>
+        </tr>
+        <tr>
+            <td>HZ_LOCATIONS</td>
+            <td>Location ID, Address, City, Country</td>
+        </tr>
+        <tr>
+            <td>HZ_PARTIES</td>
+            <td>Party ID, Party Name, Party Type</td>
+        </tr>
+        <tr>
+            <td>HZ_PARTY_SITES</td>
+            <td>Party Site ID, Location ID, Party ID</td>
+        </tr>
+        <tr>
+            <td>HZ_RELATIONSHIPS</td>
+            <td>Relationship ID, Subject ID, Object ID</td>
+        </tr>
+        <tr>
+            <td>JTF_RS_SALESREPS</td>
+            <td>Salesrep ID, Name, Territory ID</td>
+        </tr>
+        <tr>
+            <td>MTL_SYSTEM_ITEMS_B</td>
+            <td>Item ID, Description, Category ID</td>
+        </tr>
+        <tr>
+            <td>OKC_K_HEADERS_ALL_B</td>
+            <td>Contract Number, Customer ID, Contract Status</td>
+        </tr>
+        <tr>
+            <td>OKS_K_HEADERS_B</td>
+            <td>Service Contract Number, Start Date, End Date</td>
+        </tr>
+        <tr>
+            <td>QP_LIST_HEADERS_TL</td>
+            <td>Price List ID, Name, Currency</td>
+        </tr>
+        <tr>
+            <td>RA_RULES</td>
+            <td>Rule ID, Rule Name, Description</td>
+        </tr>
+        <tr>
+            <td>XXLIN_AR_INVOICE_PDF_V</td>
+            <td>Invoice ID, PDF URL, Invoice Date</td>
+        </tr>
+        <tr>
+            <td>XXLIN_AR_INVOICE_V</td>
+            <td>Invoice ID, Invoice Date, Invoice Amount</td>
+        </tr>
+        <tr>
+            <td>XXLIN_GP_CUSTOMER_CREDIT_STATUS_V</td>
+            <td>Customer ID, Credit Status, Credit Limit</td>
+        </tr>
+        <tr>
+            <td>XXLINFPE_FIN_K_BILL_SCHEDULE</td>
+            <td>Bill Schedule ID, Contract ID, Due Date</td>
+        </tr>
+        <tr>
+            <td>XXLINFPE_FIN_K_CONTACTS</td>
+            <td>Contact ID, Name, Email, Role</td>
+        </tr>
+        <tr>
+            <td>XXLINFPE_FIN_K_HEADERS_ALL</td>
+            <td>Header ID, Contract Number, Effective Date</td>
+        </tr>
+        <tr>
+            <td>XXLINFPE_FIN_K_HEADERS_VERSIONS</td>
+            <td>Version ID, Contract ID, Version Number</td>
+        </tr>
+        <tr>
+            <td>XXLINFPE_FIN_K_LINES_ALL</td>
+            <td>Line ID, Description, Amount</td>
+        </tr>
+        <tr>
+            <td>XXLINFPE_REDO_EVENT_AGGREGATION_LOG</td>
+            <td>Event ID, Aggregation Timestamp, Status</td>
+        </tr>
+        <tr>
+            <td>XXLINFPE_USAGE_EVENTS</td>
+            <td>Event ID, Event Date, Usage Amount</td>
+        </tr>
+        <tr>
+            <td>XXLINFPEOKS_SLB_CONTRACTS_V</td>
+            <td>Contract ID, Service Level, Start Date</td>
+        </tr>
+    </tbody>
+</table>
+
 <h2>Getting Started</h2>
 <ol>
     <li>Clone the repository.</li>
