@@ -1,0 +1,59 @@
+{
+  "owner": {
+    "group_name": "SGP-FIN-POLKADOT-EDP"
+  },
+  "dev": {
+    "writer": {
+      "group_name": "SGP-FPE-EDPHC-WRITER"
+    },
+    "secondary_writers": [
+      {
+        "sp_name": "hclndfpedf01"
+      }
+    ],
+    "readers": [
+      {
+        "group_name": "SGP-FPE-EDPHC-WRITER"
+      },
+      {
+        "sp_name": "hclndfpedf01"
+      },
+      {
+        "group_name": "SGP-STRATEGIC-SOURCING"
+      }
+    ]
+  },
+  "prd": {
+    "writer": {
+      "group_name": "SGP-FPE-EDPHC-WRITER"
+    },
+    "secondary_writers": [
+      {
+        "sp_name": "hclndfppdf01"
+      }
+    ],
+    "readers": [
+      {
+        "group_name": "SGP-FIN-POLKADOT-EDP"
+      },
+      {
+        "group_name": "SGP-FPE-EDPHC-WRITER"
+      },
+      {
+        "group_name": "SGP-ENG-EDP-TO-GRID"
+      },
+      {
+        "sp_name": "hclndfppdf01"
+      },
+      {
+        "group_name": "SGP-EDP-BIZAPP-TEAM"
+      },
+      {
+        "sp_name": "spi-edp-dbx-finbia-prod"
+      },
+      {
+        "group_name": "SGP-STRATEGIC-SOURCING"
+      }
+    ]
+  }
+}
